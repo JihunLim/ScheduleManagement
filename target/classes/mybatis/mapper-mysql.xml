@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding= "UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+ 
+<mapper namespace="com.javalec.springEx3.dao.ScheduleDAO">
+	<!-- 테이블 이름을 대문자로 변경시 오류발생! -->
+  	<select id="selectNameDao" resultType="string">
+        SELECT user_name FROM user WHERE user_id = #{user_id} ;
+    </select>
+   
+    <select id="selectNameHosDao" resultType="string">
+        SELECT user_name FROM user WHERE user_id = #{user_id} ;
+    </select>
+   
+    <!-- 환자DB DAO_Mapper-->
+    <select id="selectClientMemberDao" parameterType="string" resultType="com.javalec.springEx3.dto.client_userDto">
+    	SELECT * FROM client_user WHERE cuser_id=#{cuser_id};
+    </select>
+    
+    
+   <!-- 아래 코드는 상대방의 아이디에 해당하는 저장된 위치정보를 모두 띄워주기 위한 쿼리문 -->
+   <select id="selectGpsDataDao" parameterType="string" resultType="com.javalec.springEx3.dto.gpsDto">
+   SELECT * FROM gps WHERE gps_userId=#{gps_userId};
+   </select>
+   
+   <!-- 모든 내담자 정보 -->
+   <select id="selectAllClientMemberDao" resultType="com.javalec.springEx3.dto.client_userDto">
+   SELECT * FROM client_user;
+   </select>
+   
+   <!-- 현재 트래킹 중인 내담자 정보 검색 -->
+   <select id="selectTrackClientMemberDao" resultType="com.javalec.springEx3.dto.client_userDto">
+   SELECT * FROM client_user WHERE cuser_tracking=1;
+   </select>
+   
+   <!-- 현재 트래킹 하지 않는 내담자 정보 검색 -->
+   <select id="selectNotTrackClientMemberDao" resultType="com.javalec.springEx3.dto.client_userDto">
+   SELECT * FROM client_user WHERE cuser_tracking=0;
+   </select>
+   
+   <!-- 트래킹 상태  시작으로 변경 -->
+     <update id="updateTrackClientDaoTrue" parameterType="String">
+    	update client_user set cuser_tracking = 1 where cuser_id = #{cuser_id}
+    </update>
+    
+      <!-- 트래킹 상태  중지로 변경 -->
+     <update id="updateTrackClientDaoFalse" parameterType="String">
+    	update client_user set cuser_tracking = 0 where cuser_id = #{cuser_id}
+    </update>
+    
+    <!-- 모든 과제 정보 출력 -->
+<select id="selectAllTaskDao" resultType="com.javalec.springEx3.dto.taskDto">
+   SELECT * FROM task;
+   </select>
+   
+   <!-- 특정 이름 과제 정보 삭제 -->
+   
+   <delete id="deleteTaskDao" parameterType="String">
+   DELETE FROM task WHERE task_name=#{task_name}
+   </delete>
+   
+   <!-- 특정 아이디가 수행중인 모든 과제 정보 출력 -->
+   <select id="selectTaskInClientDao" parameterType="String" resultType="com.javalec.springEx3.dto.client_taskDto">
+   SELECT * FROM client_task WHERE ctk_userId=#{ctk_userId}
+   </select>
+   
+   <!-- 안드로이드로 부터 받은 GPS data 를 DB에 삽입 -->
+   <insert id="insertGpsDao" parameterType="com.javalec.springEx3.dto.gpsDto">
+  INSERT INTO gps(gps_userId,gps_time,gps_posData) VALUES(#{gps_userId},#{gps_time},#{gps_posData})
+   </insert>
+   
+   <!-- 안드로이드로 부터 받은 과제 내용을 taskContent 디비에 삽입 -->
+   <insert id="insertTaskContentDao" parameterType="com.javalec.springEx3.dto.task_contentDto">
+   INSERT INTO task_content VALUES(#{tc_taskName},#{tc_time},#{tc_gps},#{tc_content1},#{tc_content2},#{tc_feel1},#{tc_feel2},#{tc_feelDetail},#{tc_userId})
+   </insert>
+   
+   <!-- 과제에 입력된 과제 내용 출력 -->
+   <select id ="selectAllTaskInfo" parameterType="String" resultType="com.javalec.springEx3.dto.task_contentDto">
+   select * from task_content where tc_taskName=#{tc_taskName}
+   </select>
+   
+   <!-- 내담자 아이디를 통해 담당 치료자 정보 출력 -->
+   <select id="selectManagerInfo" parameterType="String" resultType="com.javalec.springEx3.dto.userDto">
+   select * from user,client_user where client_user.cuser_id=#{user_id} and user.user_id=client_user.cuser_manager
+   </select>
+   
+   <!-- 해당 아이디의 트래킹 여부 정보를 출력 -->
+   <select id="selectCuserTracking" parameterType="String" resultType="int">
+   select cuser_tracking from client_user where cuser_id=#{cuser_id} 
+   </select>
+
+   <!-- 해당 아이디 해당 과제 중단 -->
+   <delete id="deleteTaskClientDao" parameterType="hashmap">
+    DELETE FROM client_task WHERE ctk_userId=#{ctk_userId} and ctk_taskName=#{ctk_taskName}
+   </delete>
+   <!-- 해당 아이디 해당 과제 시작 -->
+   <insert id="insertTaskClientDao" parameterType="hashmap">
+   insert into client_task(ctk_userId,ctk_taskName,ctk_answerId) values(#{ctk_userId},#{ctk_taskName},0)
+   </insert>
+   
+      <!-- 새 과제 정보 저장하기 -->
+   <insert id="insertNewTask" parameterType="hashmap">
+   	 INSERT INTO task VALUES(default, #{task_name}, #{task_total},#{task_startTime}, #{task_endTime}, default, #{task_msg}, #{task_day});
+   </insert>
+   
+      <!-- 새 관리자 정보 저장하기 -->
+   <insert id="insertUserDao" parameterType="com.javalec.springEx3.dto.userDto">
+   	 INSERT INTO user VALUES(#{user_id}, #{user_pwd}, #{user_name},#{user_sex}, #{user_email}, #{user_hospital}, default, default);
+   </insert>
+      <!-- 새 내담자 정보 저장하기 -->
+   <insert id="insertClientUserDao" parameterType="com.javalec.springEx3.dto.client_userDto">
+   	 INSERT INTO client_user VALUES(#{cuser_id}, #{cuser_pwd}, #{cuser_name},#{cuser_gender}, #{cuser_email}, #{cuser_age}, #{cuser_phone},#{cuser_birth},#{cuser_manager},#{cuser_tracking},#{cuser_home});
+   </insert>
+   
+   <!-- 생성된 모든 트리 정보 출력하기 -->
+   <select id="selectAllTreeDao" resultType="com.javalec.springEx3.dto.treeDto">
+   SELECT name FROM tree;
+   </select>
+   
+   <!-- 해당 이름의 트리 내용 불러오기-->
+     <select id="selectTreeDao" parameterType="int" resultType="com.javalec.springEx3.dto.tree_contentDto">
+   SELECT * FROM tree_content WHERE tree_id=#{tree_id};
+   </select>
+</mapper>
