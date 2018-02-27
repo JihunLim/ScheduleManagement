@@ -32,6 +32,7 @@
 		<security:access-denied-handler error-page="/access_denied.do"/>
 		<security:intercept-url pattern="/login.do" access="permitAll"/>
 		<security:intercept-url pattern="/signup.do" access="permitAll"/>
+		<security:intercept-url pattern="/checkIdIsOk.do" access="permitAll"/>
 		<security:intercept-url pattern="/checkSignup.do" access="permitAll"/>
 		<security:intercept-url pattern="/test**" access="hasRole('ROLE_ADMIN')"/>
 		<security:intercept-url pattern="/**" access="hasRole('ROLE_USER')"/>

@@ -94,4 +94,16 @@ public interface ScheduleDAO {
 	
 	//특정 트리 데이터 불러오기
 	public List<tree_contentDto> selectTreeDao(int tree_id);
+	
+	//질문 최근 id 가져오기
+	public int selectQueIdWithLastestDao();
+	
+	//질문 총 개수 가져오기
+	public int countQueIdDao(); 
+	
+	//새 질문 저장하기
+	public void insertNewQuestion(Map data);
+	
+	//아이디로 중복 확인하기
+	public int checkUserIdDao(String data);
 }
