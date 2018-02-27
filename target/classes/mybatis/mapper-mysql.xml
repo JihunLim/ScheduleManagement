@@ -101,7 +101,12 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
    
       <!-- 새 과제 정보 저장하기 -->
    <insert id="insertNewTask" parameterType="hashmap">
-   	 INSERT INTO task VALUES(default, #{task_name}, #{task_total},#{task_startTime}, #{task_endTime}, default, #{task_msg}, #{task_day});
+   	 INSERT INTO task VALUES(default, #{task_name}, #{task_total},#{task_startTime}, #{task_endTime}, default, #{task_msg}, #{task_day}, #{task_queIds});
+   </insert>
+   
+   <!-- 새 질문 정보 저장하기 -->
+   <insert id="insertNewQuestion" parameterType="hashmap">
+   	 INSERT INTO question VALUES(default, #{que_method}, #{que_settingVal}, default);
    </insert>
    
       <!-- 새 관리자 정보 저장하기 -->
@@ -122,4 +127,21 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
      <select id="selectTreeDao" parameterType="int" resultType="com.javalec.springEx3.dto.tree_contentDto">
    SELECT * FROM tree_content WHERE tree_id=#{tree_id};
    </select>
+   
+   <!-- 최신의 질문 id가져오기 -->
+   <select id="selectQueIdWithLastestDao" resultType="int">
+   	SELECT que_id FROM question ORDER BY que_id DESC LIMIT 1;
+   </select>
+   
+   <!-- 총 질문 개수 가져오기 -->
+   <select id="countQueIdDao" resultType="int">
+   	SELECT count(*) FROM question;
+   </select>
+   
+   <!-- 사용자 아이디 중복 확인하기 -->
+   <select id="checkUserIdDao" resultType="int">
+   	SELECT count(*) FROM user where user_id=#{param1};
+   </select>
+   
+   
 </mapper>

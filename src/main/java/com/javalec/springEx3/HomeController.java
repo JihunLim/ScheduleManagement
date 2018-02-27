@@ -7,18 +7,20 @@ import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.apache.ibatis.session.SqlSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
 
 import com.javalec.springEx3.dao.ScheduleDAO;
 import com.javalec.springEx3.dto.client_taskDto;
@@ -268,6 +270,119 @@ public class HomeController {
 	{
 		
 		return "SettingTask/AddNewTask";
+	}
+	
+	
+	@RequestMapping("/createNewSurvey.do")//새 과제 생성 처리 페이지(함수)
+	public String createNewSurvey(HttpServletRequest request, Model model)
+	throws Exception {
+		String resultPage = "cmmn/successCreateNewTask";
+		Map taskSavedMap = new HashMap();
+		try {
+			int countTaskDay = 0;
+			String tempStr = ""; //제출 요일 
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			//과제명 받기
+			String taskName = request.getParameter("task_title"); 
+			taskSavedMap.put("task_name", taskName);
+			//지시문 받기
+			String taskMsg = request.getParameter("task_msg");
+			taskSavedMap.put("task_msg", taskMsg);
+			//과제 생성 요일 선택
+			String[] taskDay = request.getParameterValues("task_day"); // 추가시킬
+			for (String val : taskDay) {
+				countTaskDay++;
+				if(taskDay.length != countTaskDay)
+					tempStr += val + ",";
+				else
+					tempStr += val;
+			}
+			taskSavedMap.put("task_day", tempStr);
+			//과제 생성 시간 선택 task_createTime
+			String taskCreateTime = request.getParameter("task_createYear")+"-"+request.getParameter("task_createMonth")+"-"+request.getParameter("task_createDay");
+			taskSavedMap.put("task_startTime", taskCreateTime);
+			//과제 소멸 일자 선택  task_expireDay
+			String[] taskNonExpireDay = request.getParameterValues("task_nonExpireDay");
+			System.out.println("테스트 개수 " + taskNonExpireDay.length);
+			if(taskNonExpireDay.length == 2) {
+				//유효 날짜를 선택하지 않은 경우이므로 2999년 12월 31일로 설정(2999-12-31)
+				taskSavedMap.put("task_endTime", "2999-12-31");
+			}else {
+				//유효 날짜를 선택한 경우
+				String taskEndday = request.getParameter("task_expireYear")+"-"+request.getParameter("task_expireMonth")+"-"+request.getParameter("task_expireDay");
+				taskSavedMap.put("task_endTime", taskEndday);
+			}
+			
+			/*
+			 * taskAllTitle : 질문 title 값 저장한 배열
+			 * taskTotleNum : 질문 총 개수
+			 * arr_selectBox : 선택한 질문 답변 방식을 저장한 배열
+			 * arr_taskAnchorNum : 앵커 총 개수 배열
+			 * arr_taskSlideMinNum : 슬라이드 최소 값 배열
+			 * arr_taskSlideMaxNum : 슬라이드 최대 값 배열
+			 * arr_taskSelectTree : 선택된 트리 배열
+			 * text_seperator : 문자 구분자
+			 */
+			String[] taskAllTitle = request.getParameterValues("subject_title");
+			int taskTotalNum = taskAllTitle.length - 1;
+			taskSavedMap.put("task_total", taskTotalNum);
+			String[] arr_selectBox = request.getParameterValues("selectBox");
+			String[] arr_taskAnchorNum = request.getParameterValues("task_anchorNum");
+			String[] arr_taskSlideMinNum = request.getParameterValues("task_slideMinNum");
+			String[] arr_taskSlideMaxNum = request.getParameterValues("task_slideMaxNum");
+			String[] arr_taskSelectTree = request.getParameterValues("task_selectTree");
+			String text_seperator = ",";
+			
+			// 질문 내용 저장하기
+			Map questionSavedMap = new HashMap();
+			String questionPrimaryKeys = "";
+			String tempSettingVal = "";
+			int nowNumOfQuestion = 0;
+			if(dao.countQueIdDao() != 0)
+				nowNumOfQuestion = dao.selectQueIdWithLastestDao();
+			for (int i=1;i<=taskTotalNum;i++) {
+				//선택한 질문 방식 가져오기
+				questionSavedMap.put("que_method", arr_selectBox[i]);
+				if("simple text".equals(arr_selectBox[i])) {
+					//nothing to do
+				}else if("recurd".equals(arr_selectBox[i])) {
+					tempSettingVal = arr_taskAnchorNum[i]; //앵커 개수
+					for(String tempAnchorTextStr : request.getParameterValues("task_anchorTextAt"+i)) {
+						tempSettingVal += text_seperator + tempAnchorTextStr; 
+					}
+					questionSavedMap.put("que_settingVal", tempSettingVal);
+					
+				}else if("slide".equals(arr_selectBox[i])) {
+					tempSettingVal = arr_taskSlideMinNum[i] +text_seperator+ arr_taskSlideMaxNum[i];
+					questionSavedMap.put("que_settingVal", tempSettingVal);
+				}else if("tree".equals(arr_selectBox[i])) {
+					String taskSelectTree = request.getParameter("task_selectTree");
+					questionSavedMap.put("que_settingVal", taskSelectTree);
+				}else if("box".equals(arr_selectBox[i])) {
+					String[] tempQBox = request.getParameterValues("task_boxQueAt"+i);
+					tempSettingVal = String.valueOf(tempQBox.length); //객관식 질문 개수
+					for(String tempQBoxStr : tempQBox) {
+						tempSettingVal += text_seperator + tempQBoxStr; 
+					}
+					questionSavedMap.put("que_settingVal", tempSettingVal);
+				}
+				
+				//데이터베이스에 저장
+				dao.insertNewQuestion(questionSavedMap);
+				//질문 기본키 저장
+				questionPrimaryKeys += (i!=1) ? "," + (dao.selectQueIdWithLastestDao()) : (dao.selectQueIdWithLastestDao()); //사이사이에 콤마 넣어주기
+				
+			}
+			//Task db에 질문 기본키들 저장
+			taskSavedMap.put("task_queIds", questionPrimaryKeys);
+			//새 과제 생성 db에 저장하기
+			dao.insertNewTask(taskSavedMap);
+
+		} catch (Exception exp) {
+			System.out.println(exp.getMessage());
+		//	resultPage = "cmmn/dataAccessFailure";
+		}
+		 return resultPage;
 	}
 	
 	@RequestMapping("/createNewTask.do")//새 과제 생성 처리 페이지(함수)
@@ -948,11 +1063,31 @@ public class HomeController {
 		}
 		return "SettingTask/AllTree";
 	}
+
 	@RequestMapping("/AddTree") //나중에 지우기
 	public String AddTree()
 	{
 		
 		return "SettingTask/AddTree";
+	}
+	
+	@RequestMapping(value= "/checkIdIsOk", method=RequestMethod.POST)
+	public @ResponseBody String checkIdIsOk( HttpServletRequest request, 
+	        @RequestParam("user_id") String user_id)  {
+		String result = "";
+		try {
+		ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+		user_id = request.getParameter("user_id");
+		int countUserId = dao.checkUserIdDao(user_id);
+		if(countUserId <1)
+			result = "true";
+		else
+			result = "false";
+		
+		}catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+	    return result;
 	}
 	
 	@RequestMapping("/form2") //나중에 지우기
@@ -980,4 +1115,24 @@ public class HomeController {
 		
 		return "cal";
 	}
+	@RequestMapping("/test2") //나중에 지우기
+	public String test2()
+	{
+		
+		return "test2";
+	}
+	
+	@RequestMapping("/index")
+	@ResponseBody
+	public List membrIdCheck() throws Exception {
+	        List<Map<String,String>> list = new  ArrayList<Map<String,String>>();
+	     return list;
+	 
+	}
+	
+	
+
+
+
+	
 }

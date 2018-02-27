@@ -49,6 +49,19 @@
 	<beans:bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
         <beans:constructor-arg ref="sqlSessionFactory"/>
     </beans:bean>
+    
+    <!--
+        - This bean processes annotated handler methods, applying Application-specific PropertyEditors
+        - for request parameter binding. It overrides the default AnnotationMethodHandlerAdapter.
+     -->
+    <beans:bean class="org.springframework.web.servlet.mvc.annotation.AnnotationMethodHandlerAdapter" >
+        <!-- @ResponseBody를 사용하기 위해 -->
+        <!-- jre : jackson-core, jackson-mapper 필요-->
+	    <beans:property name="messageConverters">
+	    <beans:bean class="org.springframework.http.converter.json.MappingJacksonHttpMessageConverter"></beans:bean>
+	    </beans:property> 
+    </beans:bean>
+
 	
 	
 	<!-- /For Pagination Tag -->

@@ -1,0 +1,983 @@
+package com.javalec.springEx3;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.apache.ibatis.session.SqlSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.javalec.springEx3.dao.ScheduleDAO;
+import com.javalec.springEx3.dto.client_taskDto;
+import com.javalec.springEx3.dto.client_userDto;
+import com.javalec.springEx3.dto.gpsDto;
+import com.javalec.springEx3.dto.taskDto;
+import com.javalec.springEx3.dto.task_contentDto;
+import com.javalec.springEx3.dto.treeDto;
+import com.javalec.springEx3.dto.tree_contentDto;
+import com.javalec.springEx3.dto.userDto;
+
+/**
+ * Handles requests for the application home page.
+ */
+@Controller
+public class HomeController {
+	
+	@Autowired
+	public SqlSession sqlSession;
+	
+	@Autowired
+	BCryptPasswordEncoder pwdEncoder;
+	
+	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
+	
+	@RequestMapping("/database.do") //database test page
+	public String database(Model model) {
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			model.addAttribute("list", dao.selectNameDao("tpdud215"));
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "home";
+
+	}
+	
+	@RequestMapping("/login") //login page
+	public String login()
+	{
+		
+		return "Member/login";
+	}
+	@RequestMapping("/loginForm") //login test page
+	public String loginForm()
+	{
+		
+		return "Member/loginForm";
+	}
+	
+	@RequestMapping("/signup")  //member join page
+	public String join()
+	{
+		
+		return "Member/join";
+	}
+
+	@RequestMapping(value = {"/main"}, method = RequestMethod.GET)
+	public String main(Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			model.addAttribute("name", dao.selectNameHosDao("tpdud215"));
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "main";
+	}
+	
+	
+	@RequestMapping("/checkSignup") // 회원 관리하는 페이지
+	public String checkSignup(Model model, HttpServletRequest request)
+	{
+		String resultPage = "cmmn/saveSignUpSuccess";
+		
+			try {
+				System.out.println("이꾸요잇!");
+				ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+				
+				String user_id = request.getParameter("user_id");
+				String user_pwd = pwdEncoder.encode(request.getParameter("user_pwd"));
+				String user_name = request.getParameter("user_name");
+				String user_sex = request.getParameter("user_sex");
+				String user_email = request.getParameter("user_email");
+				String user_hospital = request.getParameter("user_hospital");
+	
+				userDto user = new userDto(user_id, user_pwd, user_name, user_sex, user_email, user_hospital);
+				dao.insertUserDao(user);
+				
+			}catch(Exception ex) {
+				resultPage = "cmmn/saveSignUpFailure";
+				System.out.println(ex.getMessage());
+			}
+			return resultPage;
+	}	
+	@RequestMapping("/ClientJoin") //form test page
+	public String ClientJoin()
+	{
+		
+		return "ClientManagement/ClientJoin";
+	}
+	@RequestMapping("/checkClientSignup") //form test page
+	public String checkClientSignup()
+	{
+		
+		return "Dashboard/Dashboard";
+	}
+	
+	@RequestMapping("/IdCheckForm") //form test page
+	public String IdCheckForm()
+	{
+		
+		return "Member/IdCheckForm";
+	}
+	@RequestMapping("/form") //form test page
+	public String form()
+	{
+		
+		return "form";
+	}
+	
+	@RequestMapping("/ClientTable") //나의 내담자 관리하는 페이지
+	public String ClientTable(Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<client_userDto> cmDto= dao.selectAllClientMemberDao();
+				model.addAttribute("list", cmDto);
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		
+		return "ClientManagement/ClientTable";
+	}
+	
+	@RequestMapping("/ViewClient")//내담자 상세보기 페이지
+	public String ViewClient(HttpServletRequest request,Model model)
+	{
+		String cuser_id="\0"; //디폴트 아이디 값
+		try {
+					String search=request.getParameter("search");
+					ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+					List<client_userDto> cmDto;
+					List<client_taskDto> ctDto;
+					List<taskDto> tDto;
+					List<userDto> userDto;
+					
+					if(search!=null)
+					{
+						cmDto=dao.selectClientMemberDao(search);//특정 내담자. 추후에 list가아닌 다른걸로 수정
+						ctDto=dao.selectTaskInClientDao(search); //모든 과제 중 내담자가 수행중인 과제
+						tDto= dao.selectAllTaskDao();  //생성된 모든 과제 
+						userDto=dao.selectManagerInfo(search);
+						cuser_id=search; // 나중에 추가적인 과제 수정위해 해당 아이디 값 저장
+					}
+					else //따로 검색하지 않은 경우 디폴트로 hong123 저장
+					{
+						
+						cmDto=dao.selectClientMemberDao("hong123");//특정 내담자. 추후에 list가아닌 다른걸로 수정
+						ctDto=dao.selectTaskInClientDao("hong123"); //모든 과제 중 내담자가 수행중인 과제
+						 tDto= dao.selectAllTaskDao();  //생성된 모든 과제 
+						 userDto=dao.selectManagerInfo("hong123");
+						 cuser_id="hong123";
+					}
+			
+			
+			model.addAttribute("list", cmDto);
+			model.addAttribute("tasklist", tDto);
+			model.addAttribute("ctlist",ctDto);
+			model.addAttribute("userlist",userDto);
+			
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "ClientManagement/ViewClient";
+	}
+	
+	
+	@RequestMapping("/DeleteTaskClient.do")//해당 아이디 해당 과제 중단
+	public String UpdateTaskClient(HttpServletRequest request, Model model)
+	throws Exception {
+		//String resultPage = "forward:/ViewClient.do";
+		String resultPage = "cmmn/successDeleteTask";
+		Map map = new HashMap();
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			String ctk_userId = request.getParameter("ctk_userId"); 
+			String ctk_taskName=request.getParameter("ctk_taskName");
+			
+			System.out.println(ctk_userId+"+"+ctk_taskName);
+			//dao.updateTrackClientDaoTrue(cuser_id);
+			try {
+			map.put("ctk_userId", ctk_userId);
+			map.put("ctk_taskName",ctk_taskName);
+			}
+			catch(Exception e)
+			{
+				System.out.println(e.getMessage());
+			}
+			dao.deleteTaskClientDao(map);
+		} catch (Exception exp) {
+			System.out.println(exp.getMessage());
+		//	resultPage = "cmmn/dataAccessFailure";
+		}
+		 return resultPage;
+	}
+	
+	@RequestMapping("/InsertTaskClient.do")//해당 아이디에게 과제 부여
+	public String InsertTaskClient(HttpServletRequest request, Model model)
+	throws Exception {
+		//String resultPage = "forward:/ViewClient.do";
+		String resultPage = "cmmn/successInsertTask";
+		Map map = new HashMap();
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			String ctk_userId = request.getParameter("ctk_userId"); 
+			String ctk_taskName=request.getParameter("ctk_taskName");
+			
+			System.out.println(ctk_userId+"+"+ctk_taskName);
+			//dao.updateTrackClientDaoTrue(cuser_id);
+			try {
+			map.put("ctk_userId", ctk_userId);
+			map.put("ctk_taskName",ctk_taskName);
+			}
+			catch(Exception e)
+			{
+				System.out.println(e.getMessage());
+			}
+			dao.insertTaskClientDao(map);
+		} catch (Exception exp) {
+			System.out.println(exp.getMessage());
+		//	resultPage = "cmmn/dataAccessFailure";
+		}
+		 return resultPage;
+	}
+	
+	@RequestMapping("/AddNewServey")//새로운 과제 추가 페이지
+	public String AddNewServey()
+	{
+		
+		return "SettingTask/AddNewServey";
+	}
+	
+	@RequestMapping("/AddNewTask")//새로운 과제 추가 페이지
+	public String AddNewTask()
+	{
+		
+		return "SettingTask/AddNewTask";
+	}
+	
+	@RequestMapping("/createNewTask.do")//새 과제 생성 처리 페이지(함수)
+	public String createNewTask(HttpServletRequest request, Model model)
+	throws Exception {
+		String resultPage = "cmmn/successCreateNewTask";
+		Map tempMap2 = new HashMap();
+		try {
+			int i = 0;
+			String tempStr = ""; //제출 요일 
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			//과제명 받기
+			String taskName = request.getParameter("task_name"); 
+			tempMap2.put("task_name", taskName);
+			//지시문 받기
+			String taskIndicator = request.getParameter("task_indicator");
+			tempMap2.put("task_msg", taskIndicator);
+			//과제 생성 요일 선택
+			String[] taskDay = request.getParameterValues("task_day"); // 추가시킬
+			for (String val : taskDay) {
+				i++;
+				if(taskDay.length != i)
+					tempStr += val + ",";
+				else
+					tempStr += val;
+			}
+			tempMap2.put("task_day", tempStr);
+			//과제 생성 시간 선택 task_createTime
+			String taskCreateTime = request.getParameter("task_createTime");
+			tempMap2.put("task_startTime", taskCreateTime);
+			//과제 소멸 일자 선택  task_expireDay
+			String[] taskNonExpireDay = request.getParameterValues("task_nonExpireDay");
+			if(taskNonExpireDay.length == 2) {
+				//유효 날짜를 선택하지 않은 경우이므로 2999년 12월 31일로 설정(2999-12-31)
+				tempMap2.put("task_endTime", "2999-12-31");
+			}else {
+				//유효 날짜를 선택한 경우
+				String taskExpireDay = request.getParameter("task_expireDay");
+				tempMap2.put("task_endTime", taskExpireDay);
+			}
+			
+			//과제 생성 개수
+			String taskTaskNum = request.getParameter("task_taskNum");
+			tempMap2.put("task_total", taskTaskNum);
+			
+			//새 과제 생성 db에 저장하기
+			dao.insertNewTask(tempMap2);
+			
+			// 내담자 입력방식 
+			// 입력방식 선택 저장하기
+			Map tempMap = new HashMap();
+			String selectBox = request.getParameter("selectBox");
+			// 1. 단순 텍스트 입력일 경우 
+			if("simple text".equals(selectBox)) {
+				//db저장(방식)
+				
+			}
+
+			// 2. 리커트 척도 방식으로 입력할 경우 
+			else if("recurd".equals(selectBox)) {
+				//db저장(방식, 앵커갯수)
+				String taskAnchorNum = request.getParameter("task_anchorNum");
+				tempMap.put("answer_method", selectBox);
+				tempMap.put("answer_optQuestion", taskAnchorNum);
+				//db에 저장하기
+				
+			}
+			
+			// 3. 슬라이드 방식으로 입력할 경우 
+			else if("slide".equals(selectBox)) {
+				//db저장(방식, 슬라이드 구간(최소, 최대)
+				String taskSlideMinNum = request.getParameter("task_slideMinNum");
+				String taskSlideMaxNum = request.getParameter("task_slideMaxNum");
+				tempMap.put("answer_method", selectBox);
+				tempMap.put("answer_optQuestion", taskSlideMinNum+","+taskSlideMaxNum);
+				//db에 저장하기
+				
+			}
+			
+			// 4. 트리구조 방식으로 입력할 경우 
+				else if("tree".equals(selectBox)) {
+					//db저장(방식, 트리id)
+					String taskSelectTree = request.getParameter("task_selectTree");
+					tempMap.put("answer_method", selectBox);
+					tempMap.put("answer_optQuestion", taskSelectTree);
+					//db에 저장하기
+					
+				}
+			
+			// 5. 박스형 방식으로 입력할 경우 
+				else if("box".equals(selectBox)) {
+					//db저장(방식, 트리id)
+					String selectBoxNum = request.getParameter("selectBoxNum");
+					if("2".equals(selectBoxNum)) {
+						String task_boxQue1 = request.getParameter("task_boxQue1");
+						String task_boxQue2 = request.getParameter("task_boxQue2");
+						tempMap.put("answer_method", selectBox);
+						tempMap.put("answer_optQuestion", selectBoxNum+","+task_boxQue1+","+task_boxQue2);
+					}else if("3".equals(selectBoxNum)) {
+						String task_boxQue1 = request.getParameter("task_boxQue1");
+						String task_boxQue2 = request.getParameter("task_boxQue2");
+						String task_boxQue3 = request.getParameter("task_boxQue3");
+						tempMap.put("answer_method", selectBox);
+						tempMap.put("answer_optQuestion", selectBoxNum+","+task_boxQue1+","+task_boxQue2+","+task_boxQue3);
+					}else if("4".equals(selectBoxNum)) {
+						String task_boxQue1 = request.getParameter("task_boxQue1");
+						String task_boxQue2 = request.getParameter("task_boxQue2");
+						String task_boxQue3 = request.getParameter("task_boxQue3");
+						String task_boxQue4 = request.getParameter("task_boxQue4");
+						tempMap.put("answer_method", selectBox);
+						tempMap.put("answer_optQuestion", selectBoxNum+","+task_boxQue1+","+task_boxQue2+","+task_boxQue3+","+task_boxQue4);
+					}else if("5".equals(selectBoxNum)) {
+						String task_boxQue1 = request.getParameter("task_boxQue1");
+						String task_boxQue2 = request.getParameter("task_boxQue2");
+						String task_boxQue3 = request.getParameter("task_boxQue3");
+						String task_boxQue4 = request.getParameter("task_boxQue4");
+						String task_boxQue5 = request.getParameter("task_boxQue5");
+						tempMap.put("answer_method", selectBox);
+						tempMap.put("answer_optQuestion", selectBoxNum+","+task_boxQue1+","+task_boxQue2+","+task_boxQue3+","+task_boxQue4+","+task_boxQue5);
+					}
+					//db에 저장하기
+					
+				}			
+
+		} catch (Exception exp) {
+			System.out.println(exp.getMessage());
+		//	resultPage = "cmmn/dataAccessFailure";
+		}
+		 return resultPage;
+	}
+	
+	@RequestMapping("/ViewAllTask")//모든 과제 보기 페이지
+	public String ViewAllTask(Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<taskDto> cmDto= dao.selectAllTaskDao();
+			model.addAttribute("list", cmDto);
+			System.out.println("test: " + cmDto);
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		
+		return "SettingTask/ViewAllTask";
+	}
+	
+	@RequestMapping("/DeleteTask.do")//과제 삭제
+	public String DeleteTask(HttpServletRequest request, Model model)
+	throws Exception {
+		String resultPage = "forward:/ViewAllTask.do";
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			String taskName = request.getParameter("taskName"); 
+			
+			
+			dao.deleteTaskDao(taskName);
+			
+			
+
+		} catch (Exception exp) {
+			System.out.println(exp.getMessage());
+		//	resultPage = "cmmn/dataAccessFailure";
+		}
+		 return resultPage;
+	}
+	
+	@RequestMapping("/SampleChart")//샘플 차트 (임시)
+	public String SampleChart()
+	{
+		
+		return "Chart/SampleChart";
+	}
+	
+	@RequestMapping("/ManageToClient")//내담자 별 관리
+	public String ManageToClient(Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<client_userDto> cmDto= dao.selectAllClientMemberDao();
+				model.addAttribute("list", cmDto);
+			//model.addAttribute("name", cmDto.get(0).toString());
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "DataManagement/ManageToClient";
+	}
+	
+	@RequestMapping("/ManageToTask")//과제별관리
+	public String ManageToTask(Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<taskDto> cmDto= dao.selectAllTaskDao();
+			model.addAttribute("list", cmDto);
+			System.out.println("test: " + cmDto);
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		
+		return "DataManagement/ManageToTask";
+	}
+	@RequestMapping("/ManageToClientDetail")//내담자별 관리 -> 내담자 아이디 클릭 상세정보
+	public String ManageToClientDetail(Model model,HttpServletRequest request)
+	{
+		
+		//웹에서 ID 데이터를 전송받은 회원 코드
+		String id = request.getParameter("id");
+				
+		
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<gpsDto> gDto=dao.selectGpsDataDao("hong123");
+			model.addAttribute("list", gDto);
+			//model.addAttribute("name", cmDto.get(0).toString());
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "DataManagement/ManageToClientDetail";
+	}
+	
+	
+	
+	@RequestMapping("/AndroidRequestTask1")//안드로이드로부터 받아올 과제 내용
+	public void AndroidRequestTask1(HttpServletRequest request)
+	{
+		try {
+		//
+		String tc_taskName=request.getParameter("tc_taskName"); 
+		String tc_time=request.getParameter("tc_time");
+		String tc_gps=request.getParameter("tc_gps");
+		int  tc_content1=Integer.parseInt(request.getParameter("tc_content1")); 
+		int  tc_content2=Integer.parseInt(request.getParameter("tc_content2"));
+		int  tc_feel1=Integer.parseInt(request.getParameter("tc_feel1"));
+		int  tc_feel2=Integer.parseInt(request.getParameter("tc_feel2")); 
+		int  tc_feelDetail=Integer.parseInt(request.getParameter("tc_feelDetail"));
+		String userId=request.getParameter("userId");
+		
+		
+		//
+		task_contentDto tcdto;
+		tcdto=new task_contentDto(tc_taskName, tc_time, tc_gps, tc_content1, tc_content2, tc_feel1, tc_feel2, tc_feelDetail, userId); 
+		//gpsdto=new gpsDto("lee123","20180102","123-49");  
+		
+	
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			//dao.insertGpsDao(gpsdto);		
+			dao.insertTaskContentDao(tcdto);
+		} 
+		
+		catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		
+		
+		
+	
+	}
+	
+	/*
+	 * Map 방식을 이용한 json api 컨트롤러 샘플 (웹 -> 안드로이드 json 데이터 통신)
+	 * */
+    //웹에서 테스트 시 getJsonByMap.do에 접속하면 json 데이터 형식을 알 수 있음!
+	@RequestMapping(value="/getJsonByMap")
+	public @ResponseBody Map<String , Object> getJsonByMap() {
+	    Map<String, Object> jsonObject = new HashMap<String, Object>();
+	    Map<String, Object> jsonSubObject = null;
+	    ArrayList<Map<String, Object>> jsonList = new ArrayList<Map<String, Object>>();
+	         
+	    //1번째 데이터
+	    jsonSubObject = new HashMap<String, Object>();
+	    jsonSubObject.put("idx", 1);
+	    jsonSubObject.put("title", "제목입니다");
+	    jsonSubObject.put("create_date", new Date());
+	    jsonList.add(jsonSubObject);
+	    //2번째 데이터
+	    jsonSubObject = new HashMap<String, Object>();
+	    jsonSubObject.put("idx", 2);
+	    jsonSubObject.put("title", "두번째제목입니다");
+	    jsonSubObject.put("create_date", new Date());
+	    jsonList.add(jsonSubObject);
+	         
+	    jsonObject.put("success", true);
+	    jsonObject.put("total_count", 10);
+	    jsonObject.put("result_list", jsonList);
+	         
+	    return jsonObject; 
+	}
+	
+	@RequestMapping(value="/ClientGps" , method = {RequestMethod.GET, RequestMethod.POST})//트래킹 시작 하면 안드로이드에서 위치 정보 데이터를 받아올때 사용할 함수
+	public @ResponseBody Map<String , Object> ClientGps(HttpServletRequest request)
+	{
+		 Map<String, Object> jsonObject = new HashMap<String, Object>();
+		  
+		String result="\0";
+		    boolean isSuccess=false;
+		    String msg="\0";
+		    
+		try {
+		//안드로이드로 부터 데이터를 전송받음 //시연 데이터의 a_gpsID=hong123
+		String gID=request.getParameter("gps_userId"); 
+		String gTime=request.getParameter("gps_time");
+		String gData=request.getParameter("gps_data");
+		
+		//	String gID="hong123"; 
+		//	String gTime="0000-00-00 00:00:00";
+		//	String gData="3";
+		System.out.println(gID);
+		System.out.println(gTime);
+		System.out.println(gData);
+		//안드로이드로부터 받은 데이터를 GPS 데이터 베이스에 저장
+		gpsDto gpsdto;
+		gpsdto=new gpsDto(gID,gTime,gData);  
+		//gpsdto=new gpsDto("lee123","20180102","123-49");  
+		
+	
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			dao.insertGpsDao(gpsdto);	
+			result=" ";
+			isSuccess=true;
+			msg="위치 저장 성공";
+			
+		} 
+		
+		catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+			isSuccess=false;
+			result="null";
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+			msg=ex.getMessage();
+		}
+		
+		jsonObject.put("isSuccessful", isSuccess);   
+		jsonObject.put("result",result);
+		jsonObject.put("msg", msg);
+		 return jsonObject; 
+	
+	}
+	@RequestMapping(value="/ClientGpsTest" , method = {RequestMethod.GET, RequestMethod.POST})//트래킹 시작 하면 안드로이드에서 위치 정보 데이터를 받아올때 사용할 함수
+	public @ResponseBody Map<String , Object> ClientGpsTest()
+	{
+		 Map<String, Object> jsonObject = new HashMap<String, Object>();
+		  
+		String result="\0";
+		    boolean isSuccess=false;
+		    String msg="\0";
+		    
+		try {
+		//안드로이드로 부터 데이터를 전송받음 //시연 데이터의 a_gpsID=hong123
+		String gID="hong123"; 
+		String gTime="2018-01-18 00:00:00";
+		String gData="123-33";
+		
+		//	String gID="hong123"; 
+		//	String gTime="0000-00-00 00:00:00";
+		//	String gData="3";
+		System.out.println(gID);
+		System.out.println(gTime);
+		System.out.println(gData);
+		//안드로이드로부터 받은 데이터를 GPS 데이터 베이스에 저장
+		gpsDto gpsdto;
+		gpsdto=new gpsDto(gID,gTime,gData);  
+		//gpsdto=new gpsDto("lee123","20180102","123-49");  
+		
+	
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			dao.insertGpsDao(gpsdto);	
+			result=" ";
+			isSuccess=true;
+			msg="위치 저장 성공";
+			
+		} 
+		
+		catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+			isSuccess=false;
+			result="null";
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+			msg=ex.getMessage();
+		}
+		
+		jsonObject.put("isSuccessful", isSuccess);   
+		jsonObject.put("result",result);
+		jsonObject.put("msg", msg);
+		 return jsonObject; 
+	
+	}
+	@RequestMapping(value="/getTrackFlag" , method = {RequestMethod.GET, RequestMethod.POST}) //나중에 http서블릿 형태로 아이디 받아오는 걸로 바꿀것. 웹에서 테스트 해보기 위해서 일단 파라미터 없이..
+	public @ResponseBody Map<String , Object> getTrackFlag(HttpServletRequest request) {
+	    Map<String, Object> jsonObject = new HashMap<String, Object>();
+	  
+	    String cuser_id="\0";
+	    int flag=-1;
+	    boolean isSuccess=false;
+	    String msg="\0";
+	    
+		try {
+			
+			 cuser_id=request.getParameter("cuser_id");
+			isSuccess=true;
+			msg="위치여부 조회성공";
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			flag=dao.selectCuserTracking(cuser_id);
+			
+						
+		} catch (Exception ex) {
+			isSuccess=false;
+			flag=-1;
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+			msg=ex.getMessage();
+		}
+	    
+		
+		jsonObject.put("isSuccessful", isSuccess);   
+		jsonObject.put("result",flag);
+		jsonObject.put("msg", msg);
+	         
+	    return jsonObject; 
+	}
+	/*
+	@RequestMapping("/TrackingFlag")//웹 -> 안드로이드에서 해당 아이디에 대한 트래킹 정보 json 형태로 전송
+	@ResponseBody
+	public  Map TrackingFlag(HttpServletRequest request) {
+	      
+		
+		Map result=new HashMap();
+		String cuser_id=request.getParameter("cuser_id"); //안드 혹은 웹에서 사용자 아이디를 받아옴
+		int flag=-1;
+		
+		//획득한 아이디에 해당하는 트래킹 여부 정보 가져오기				
+		
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			flag=dao.selectCuserTracking("cuser_id");
+			result.put("flag",flag);
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+	    
+		result.put("flag",flag);
+	   
+	    return result; 
+	}
+	*/
+	@RequestMapping("/ManageToTaskDetail")//내담자별 관리 -> 내담자 아이디 클릭 상세정보
+	public String ManageToTaskDetail(HttpServletRequest request,Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			
+			String task_name = request.getParameter("task_name"); 
+			
+			List<task_contentDto> cmDto= dao.selectAllTaskInfo(task_name);
+			
+			model.addAttribute("task_name",task_name);
+			model.addAttribute("list", cmDto);
+				
+			//model.addAttribute("name", cmDto.get(0).toString());
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "DataManagement/ManageToTaskDetail";
+	}
+	
+	@RequestMapping("/SetTracking")//내담자 과제설정 -> 위치 트래킹 설정
+	public String SetTracking(Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<client_userDto> cmDto= dao.selectTrackClientMemberDao();
+			List<client_userDto> cmnDto= dao.selectNotTrackClientMemberDao();
+			
+				model.addAttribute("list", cmDto);
+				model.addAttribute("nlist", cmnDto);
+				
+			//model.addAttribute("name", cmDto.get(0).toString());
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "SettingTask/SetTracking";
+	}
+	
+	@RequestMapping("/UpdateTrackClient.do")//트래킹 상태 변경
+	public String UpdateTrackClient(HttpServletRequest request, Model model)
+	throws Exception {
+		String resultPage = "forward:/SetTracking.do";
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			String cuser_id = request.getParameter("cuser_id"); 
+			int cuser_tracking=Integer.parseInt(request.getParameter("cuser_tracking"));
+			
+			if(cuser_tracking==0)
+			{
+			dao.updateTrackClientDaoTrue(cuser_id);
+			}
+			else if(cuser_tracking==1)
+			{
+				dao.updateTrackClientDaoFalse(cuser_id);
+				
+			}
+
+		} catch (Exception exp) {
+			System.out.println(exp.getMessage());
+		//	resultPage = "cmmn/dataAccessFailure";
+		}
+		 return resultPage;
+	}
+	
+	@RequestMapping(value = {"/", "/Dashboard"}, method = RequestMethod.GET)
+	public String Dashboard()
+	{
+		
+		return "Dashboard/Dashboard";
+	}
+	@RequestMapping("/UpdateTask")
+	public String UpdateTask(HttpServletRequest request,Model model)
+	{  
+		model.addAttribute("task_name",request.getParameter("taskName"));
+		model.addAttribute("task_msg",request.getParameter("task_msg"));
+		 
+		return "SettingTask/UpdateTask";
+	}
+	@RequestMapping("/Tree") 
+	public String Tree()
+	{
+		
+		return "SettingTask/Tree";
+	}
+	@RequestMapping("/TreeAjaxTest") //테스트 페이지 나중에 수정하기
+	public String TreeAjaxTest(Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<tree_contentDto> cmDto= dao.selectTreeDao(1);
+			
+				model.addAttribute("list", cmDto);
+			
+			//model.addAttribute("name", cmDto.get(0).toString());
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "SettingTask/TreeAjaxTest";
+	}
+	@RequestMapping("/SaveTree")//textarea 전송받고 이를 저장하는 페이지
+	public String SaveTree(Model model, HttpServletRequest request)
+	{
+		String resultPage = "cmmn/saveTreeSuccess";
+		
+			try {
+				System.out.println("이꾸요잇!");
+				ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+				
+				String msg = request.getParameter("msg");
+				 msg=msg+"!"; //마지막 문장 구분자를 위해 마지막에 !를 붙여주기
+				 System.out.println(msg);
+				 char[] strArray=new char[msg.length()]; //트리 문자열을 문자열 배열로 변환하여 저장
+				 String strTree="";
+				 int length=0;
+				 length=strArray.length;
+				 for(int i=0; i<length; i++)
+				 {
+					 strArray[i]=(msg.charAt(i));
+					 //System.out.println(strArray[i]);
+				 }
+				 int level=0; //트리의 부모 노드를
+				 
+				 if(msg.charAt(0)!='[')
+				 {
+					 //첫 글자가 [가 아니면 예외처리
+					 return "cmmn/saveTreeFailure";
+				 }
+				 int i=1;
+				 while ((strArray[i] != '[') && (strArray[i] != ']')) i++;
+					strTree= msg.substring(1, i);
+				System.out.println(strTree);	
+				int tree_level=0; //트리 레벨 계산
+				int start=i;
+				int end=0;
+				for(; i<msg.length(); i++)
+				{
+					int temp=tree_level;
+					
+					if(msg.charAt(i)=='['||msg.charAt(i)==']')
+					{
+						
+						
+					if(msg.charAt(i)=='[')
+						{
+						tree_level++;
+						}
+					if(msg.charAt(i)==']') 
+					{ tree_level--;
+					}
+					end=i;
+					System.out.print(tree_level);
+					System.out.println(msg.substring(start,end));
+					start=i+1;
+					}
+					//System.out.print(tree_level,msg.substring(start, i));
+				}
+
+			//	userDto user = new userDto(user_id, user_pwd, user_name, user_sex, user_email, user_hospital);
+				//dao.insertUserDao(user);
+				
+			}catch(Exception ex) {
+				resultPage = "cmmn/saveTreeFailure";
+				System.out.println(ex.getMessage());
+			}
+			return resultPage;
+	}
+	/* 참고용 나주에 꼭 지우기
+	@RequestMapping("/checkSignup") // 회원 관리하는 페이지
+	public String checkSignup(Model model, HttpServletRequest request)
+	{
+		String resultPage = "cmmn/saveSignUpSuccess";
+		
+			try {
+				System.out.println("이꾸요잇!");
+				ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+				
+				String user_id = request.getParameter("user_id");
+				String user_pwd = pwdEncoder.encode(request.getParameter("user_pwd"));
+				String user_name = request.getParameter("user_name");
+				String user_sex = request.getParameter("user_sex");
+				String user_email = request.getParameter("user_email");
+				String user_hospital = request.getParameter("user_hospital");
+	
+				userDto user = new userDto(user_id, user_pwd, user_name, user_sex, user_email, user_hospital);
+				dao.insertUserDao(user);
+				
+			}catch(Exception ex) {
+				resultPage = "cmmn/saveSignUpFailure";
+				System.out.println(ex.getMessage());
+			}
+			return resultPage;
+	}*/
+	
+	@RequestMapping(value="/tttt") //해결못함 망함 ㅠ 버리는 페이지
+	public @ResponseBody Map<String , Object> tttt() {
+	    Map<String, Object> jsonObject = new HashMap<String, Object>();
+	    Map<String, Object> jsonSubObject = null;
+	    ArrayList<Map<String, Object>> jsonList = new ArrayList<Map<String, Object>>();
+	         
+	   
+	    //1번째 데이터
+	    jsonSubObject = new HashMap<String, Object>();
+	    jsonSubObject.put("text", "긍정");
+	    jsonList.add(jsonSubObject);
+	    //2번째 데이터
+	    
+	    jsonSubObject = new HashMap<String, Object>();
+	    jsonSubObject.put("text", "부정");
+	    jsonList.add(jsonSubObject);
+	         
+	  
+	    jsonObject.put("text", "성격");   
+	    return jsonObject; 
+	}
+
+	@RequestMapping("/AllTree") //생성된 모든 트리 보기 페이지
+	public String AllTree( Model model)
+	{
+		try {
+			ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+			List<treeDto> cmDto= dao.selectAllTreeDao();
+			model.addAttribute("list", cmDto);
+			System.out.println("test: " + cmDto);
+						
+		} catch (Exception ex) {
+			System.out.println("예외처리 메시지 : " + ex.getMessage());
+		}
+		return "SettingTask/AllTree";
+	}
+	@RequestMapping("/AddTree") //나중에 지우기
+	public String AddTree()
+	{
+		
+		return "SettingTask/AddTree";
+	}
+	
+	@RequestMapping("/form2") //나중에 지우기
+	public String form2()
+	{
+		
+		return "form2";
+	}
+	
+	@RequestMapping("/form3") //나중에 지우기
+	public String form3()
+	{
+		
+		return "form3";
+	}
+	@RequestMapping("/graph") //나중에 지우기
+	public String graph()
+	{
+		
+		return "graph";
+	}
+	@RequestMapping("/cal") //나중에 지우기
+	public String cal()
+	{
+		
+		return "cal";
+	}
+}

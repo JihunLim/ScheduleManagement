@@ -101,7 +101,47 @@ PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
    
       <!-- 새 과제 정보 저장하기 -->
    <insert id="insertNewTask" parameterType="hashmap">
-   	 INSERT INTO task VALUES(default, #{task_name}, #{task_total},#{task_startTime}, #{task_endTime}, default, #{task_msg}, #{task_day});
+   	 INSERT INTO task VALUES(default, #{task_name}, #{task_total},#{task_startTime}, #{task_endTime}, default, #{task_msg}, #{task_day}, #{task_queIds});
    </insert>
+   
+   <!-- 새 질문 정보 저장하기 -->
+   <insert id="insertNewQuestion" parameterType="hashmap">
+   	 INSERT INTO question VALUES(default, #{que_method}, #{que_settingVal}, default);
+   </insert>
+   
+      <!-- 새 관리자 정보 저장하기 -->
+   <insert id="insertUserDao" parameterType="com.javalec.springEx3.dto.userDto">
+   	 INSERT INTO user VALUES(#{user_id}, #{user_pwd}, #{user_name},#{user_sex}, #{user_email}, #{user_hospital}, default, default);
+   </insert>
+      <!-- 새 내담자 정보 저장하기 -->
+   <insert id="insertClientUserDao" parameterType="com.javalec.springEx3.dto.client_userDto">
+   	 INSERT INTO client_user VALUES(#{cuser_id}, #{cuser_pwd}, #{cuser_name},#{cuser_gender}, #{cuser_email}, #{cuser_age}, #{cuser_phone},#{cuser_birth},#{cuser_manager},#{cuser_tracking},#{cuser_home});
+   </insert>
+   
+   <!-- 생성된 모든 트리 정보 출력하기 -->
+   <select id="selectAllTreeDao" resultType="com.javalec.springEx3.dto.treeDto">
+   SELECT name FROM tree;
+   </select>
+   
+   <!-- 해당 이름의 트리 내용 불러오기-->
+     <select id="selectTreeDao" parameterType="int" resultType="com.javalec.springEx3.dto.tree_contentDto">
+   SELECT * FROM tree_content WHERE tree_id=#{tree_id};
+   </select>
+   
+   <!-- 최신의 질문 id가져오기 -->
+   <select id="selectQueIdWithLastestDao" resultType="int">
+   	SELECT que_id FROM question ORDER BY que_id DESC LIMIT 1;
+   </select>
+   
+   <!-- 총 질문 개수 가져오기 -->
+   <select id="countQueIdDao" resultType="int">
+   	SELECT count(*) FROM question;
+   </select>
+   
+   <!-- 사용자 아이디 중복 확인하기 -->
+   <select id="checkUserIdDao" resultType="int">
+   	SELECT count(*) FROM user where user_id=#{param1};
+   </select>
+   
    
 </mapper>

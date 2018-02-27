@@ -9,6 +9,7 @@
 <link rel="stylesheet" type="text/css"
    href="<%=cp%>/bootstrap2/css/googleMeterial.css" />
 
+
 <div id="page-wrapper">
    <div class="row">
       <div class="col-lg-12">
@@ -18,15 +19,15 @@
    </div>
 
    <!-- form -->
-   <form name="mainForm" method="post" action="<%=cp%>/createNewTask.do"
+   <form name="mainForm" method="post" action="<%=cp%>/createNewSurvey.do"
       onsubmit="return checkFormRule()">
       <!-- /.row -->
       <div class="row">
          <div class="col-lg-12">
             <div class="panel panel-default">
                <div class="panel-heading group" style="margin-bottom: 5px;">
-                     <input class="form-control" type="text" name="task_name" id="google"
-                        style="border: 0; font-size: 20pt; font-weight: bold;" value="제목 없는 과제" />
+                     <input class="form-control" type="text" name="task_title" id="google task_title"
+                        style="border: 0; width:500px; font-size: 20pt; font-weight: bold; background-color:transparent;" value="제목 없는 과제" />
                      <span class="highlight"></span>
                      <span class="bar"></span>
                </div>
@@ -34,6 +35,10 @@
                   <div class="row">
                      <div class="col-lg-12">
                         <div class="form-group">
+                        <div class="form-group">
+                        <label>과제 설명</label><br />
+                        <input class="form-control" type="text" id="task_msg" name="task_msg" placeholder="과제 설명을 입력해주세요." />
+                        </div>
                            <label>과제 제출 요일 선택</label><br />
                            <div class="form-group">
                               <label>&nbsp;&nbsp; &nbsp; &nbsp; 생성 요일&nbsp;&nbsp;</label> <span>(
@@ -59,18 +64,62 @@
 
                            <div class="selectTime1">
                               <div class="form-group">
-                                 <label>과제 생성 시간 선택</label> <input
-                                    class="form-control timepicker" type="text"
-                                    id="mytimepicker1" name="task_createTime"
-                                    style="width: 200px;" />
+                                 <label>과제 생성 일자 선택</label><br /> 
+                                 <select id="task_createYear" name="task_createYear">
+		                           <option>---년---</option>
+		                           <%
+									 String toDate = new java.text.SimpleDateFormat("yyyy").format(new java.util.Date());
+									 for (int i=Integer.parseInt(toDate) ; i<=2999 ; i++) {
+									%>
+									 <option value="<%= i %>"><%= i %>년</option>
+									<% } %> 
+		                           </select>
+								   <select id="task_createMonth" name="task_createMonth">
+								   <option>--월--</option>
+								   <%
+								   	 for (int i=1;i<=12;i++){
+								   %>
+								   <option value="<%=i%>"><%=i%> 월</option>
+								   <%}%>
+								   </select>
+								  <select id="task_createDay" name="task_createDay">
+								  <option>--일--</option>
+								  <%
+								   	 for (int i=1;i<=31;i++){
+								   %>
+								  <option value="<%=i%>"><%=i%> 일</option>
+								  <%}%>
+								  </select>
                               </div>
                            </div>
                         </div>
 
                         <div class="form-group">
-                           <label>과제 소멸 일자 선택</label> <input
-                              class="form-control timepicker" type="text" id="mytimepicker2"
-                              name="task_endTime" style="width: 200px;" />
+                           <label>과제 소멸 일자 선택</label><br />
+                           <select id="task_expireYear" name="task_expireYear">
+                           <option>---년---</option>
+                           <%
+							 for (int i=Integer.parseInt(toDate) ; i<=2999 ; i++) {
+							%>
+							 <option value="<%= i %>"><%= i %>년</option>
+							<% } %> 
+                           </select>
+						   <select id="task_expireMonth" name="task_expireMonth">
+						   <option>--월--</option>
+						   <%
+						   	 for (int i=1;i<=12;i++){
+						   %>
+						   <option value="<%=i%>"><%=i%> 월</option>
+						   <%}%>
+						   </select>
+						  <select id="task_expireDay" name="task_expireDay">
+						  <option>--일--</option>
+						  <%
+						   	 for (int i=1;i<=31;i++){
+						   %>
+						  <option value="<%=i%>"><%=i%> 일</option>
+						  <%}%>
+						  </select>
 
                            <div class="checkbox">
                               <label> <input type="checkbox"
@@ -90,24 +139,14 @@
                            <div class="panel-heading">문항 설정</div>
                            
                            
-                           
-                           
-                           
-                           
-                           
-                           
-                           
-                           <div class="panel-body" id="main_content" style="display:none;">
+                           <div class="panel-body" id="main_content" name="main_content" style="display:none;">
                               <div class="panel-group" id="accordion" name="basic_group">
                                  <div class="panel panel-default">
                                     <div class="panel-heading">
                                        <div class="row">
                                           <h4 class="panel-title">
-
-                                             <a data-toggle="collapse" data-parent="#accordion" id="changePoint"
-                                                href="#collapseOne" style="float: right;"><span id="changePointValue">▲</span>&nbsp;&nbsp;</a>
-                                             <input class="form-control" type="text" name="task_name"
-                                                style="float: left; border: 0; font-size: 15pt; font-weight: bold;"
+                                             <input class="form-control" type="text" name="subject_title"
+                                                style="float: left; border: 0; font-size: 15pt; font-weight: bold; background-color:transparent;"
                                                 value="제목 없는 질문" required/>
                                           </h4>
                                        </div>
@@ -117,8 +156,7 @@
 
                                        <div class="form-group">
                                           <label>질문</label> <input class="form-control" type="text"
-                                             onchange="alert('changed')" name="task_indicator"
-                                             placeholder="제시할 질문을 입력해주세요." />
+                                             name="task_indicator" placeholder="제시할 질문을 입력해주세요." />
                                        </div>
 
                                        <div class="form-group">
@@ -134,12 +172,7 @@
 
                                        <div name="selectLayer1" style="display: none;">
                                           <!-- 단순 텍스트 입력 시 보여질 창 -->
-                                          <div class="form-group">
-                                           
-                                             <label>답변</label> <input class="form-control" type="text"
-                                                name="task_indicator" placeholder="답변을 입력해주세요." />
-                                          
-                                          </div>
+                                          <div class="form-group"> </div>
                                        </div>
 
                                        <div name="selectLayer2" style="display: none;">
@@ -149,12 +182,7 @@
                                                 개수 설정</label> <input class="form-control" type="number"
                                                 id="task_anchorNum" name="task_anchorNum" />
                                           </div>
-                                             <label>시작</label> <input class="form-control" type="text"
-                                                name="task_anchorStartText" placeholder="ex) 매우 나쁘다" /><br />
-                                             <label>끝</label> <input class="form-control" type="text"
-                                                name="task_anchorEndText" placeholder="ex) 매우 좋다" />   
-                                                
-                                          
+                                          <div name="setNumAnchor"> </div>
                                        </div>
 
                                        <div name="selectLayer3" style="display: none;">
@@ -196,10 +224,7 @@
                                                 <div class="selectBoxLayer1">
                                                    <div class="form-group has-warning" name="cloneSelectBox1">
                                                       <label class="control-label" for="inputWarning">객관식 질문 작성</label> 
-                                                      <div name="name_cloneSelectBox">
-                                                      <input type="text" class="form-control"
-                                                         name="task_boxQue" placeholder="Q. 질문을 입력하세요." /><br />
-                                                      </div>
+                                                      <div name="name_cloneSelectBox"> </div>
                                                    </div>
                                                    
                                                 </div>
@@ -213,8 +238,17 @@
                                     </div>
                                  </div>
                               </div>
-
                            </div>
+                           
+                           
+                           
+                           
+                           <!-- .panel-heading -->
+									<div class="panel-body" id="clone_wrapper"> </div>
+                           
+                           
+                           
+                           
                         
                            <a href="#holdonposition" class="btn btn-default"
                               id="clone_button" style="background: ##F8E0E0;">새 과제 추가하기</a>
@@ -252,10 +286,7 @@
 <script src="<%=cp%>/bootstrap2/js3/sb-admin-2.js"></script>
 <!-- bootstrap3 datepicker사용 위한 js -->
 <script type='text/javascript' src='<%=cp%>/bootstrap2/js/jquery.min.js'></script>
-<script src="https://code.jquery.com/jquery-1.9.1.js">
-</script>
-<script src="https://code.jquery.com/ui/1.10.4/jquery-ui.js">
-</script>
+
 <script>
 /*    var num = 0;
    $('#clone_wrapper').on("change", "select.cl_selectBox", function(event){
@@ -308,6 +339,8 @@
          jQuery("div[name='selectLayer3']:eq("+index+")").hide();
          jQuery("div[name='selectLayer4']:eq("+index+")").hide();
          jQuery("div[name='selectLayer5']:eq("+index+")").show();
+         //객관식 답안 하나는 추가시켜놓기
+         $("a[name='addSelectBox']").trigger('click');
       } else {
          jQuery("div[name='selectLayer1']:eq("+index+")").show();
          jQuery("div[name='selectLayer2']:eq("+index+")").hide();
@@ -334,7 +367,6 @@
                dayNamesMin : [ '일', '월', '화', '수', '목', '금', '토' ],
                monthNamesShort : [ '1월', '2월', '3월', '4월', '5월', '6월',
                      '7월', '8월', '9월', '10월', '11월', '12월' ]
-
             });
    });
 </script>
@@ -384,30 +416,45 @@
 <script
    src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
 <script>
-   //질문 추가하기 버튼
-   /* 
-   $('#clone_button').click(function() {
-      $('#clone_wrapper div:first').clone().appendTo($('#clone_wrapper'));
-   });
-    */
-    
-    
+/*
+ * 디비에 저장하는 알고리즘
+   1. 질문개수 -1 로 전체 질문 개수를 확인하고
+   2. 개수만큼 for문 돌면서 
+   	    'i번째 질문 + 입력방식'을 이용하여 선택된 것들을 가져온다.
+   	    db에 저장한다.
+ */
+
+
+   //질문 추가하기 버튼  
    $('#clone_button').click(function() {
        var content = $('#main_content').clone(true);
       $('#clone_wrapper').append(content.show());
    });
    
-   
+   //질문 삭제하기 버튼
    var remainNum = 1;
-
    $("#delete_wrapper").click(function() {
-      remainNum = $("div[name='basic_group']").length;
-      if (remainNum > 1)
-         $('div[name=basic_group]').last().remove();
+      remainNum = $("div[name='main_content']").length;
+      if (remainNum > 2)
+         $('div[name=main_content]').last().remove();
       else {
          alert("최소한 1개는 설정하셔야 합니다.");
       }
    });
+   
+   // 2번 리커드 척도 앵커 설정
+   var setAnchorNum = 0;
+   $('#clone_wrapper').on("blur", "input[name='task_anchorNum']", function(){
+	      /*
+	       * index : 같은 name속성을 가진 a 태그 중에 몇번째가 선택되었는지 숫자를 알려준다.
+	      */
+	      var index = $(this).index("input[name='task_anchorNum']"); 
+   		  setAnchorNum = $(this).val()*1;
+	      //alert("인덱스 : "+index+ ", 값 : "+ setAnchorNum);
+   		  $("div[name='setNumAnchor']:eq("+index+")").empty();
+   		  for(i=0;i<setAnchorNum;i++)
+   		  	$("div[name='setNumAnchor']:eq("+index+")").append('<input class="form-control" type="text" name="task_anchorTextAt'+index+'" placeholder="'+(i+1)+'번째 앵커 문구를 설정해주세요." /> <br />');
+	   });
    
    //5. 객관식 질문 작성 설정
    var countBoxNum = 1;
@@ -417,19 +464,28 @@
        * index : 같은 name속성을 가진 a 태그 중에 몇번째가 선택되었는지 숫자를 알려준다.
       */
       var index = $(this).index("a[name='addSelectBox']"); 
-      $("div[name='cloneSelectBox1']:eq("+index+") div:first").clone().appendTo($("div[name='cloneSelectBox1']:eq("+index+")"));   
-      countBoxNum = $("div[name='cloneSelectBox1']:eq("+index+") input[name='task_boxQue']").length;
+      $("div[name='name_cloneSelectBox']:eq("+index+")").append('<input type="text" class="form-control" name="task_boxQueAt'+index+'" placeholder="질문을 입력하세요." />');      
+      //$("div[name='cloneSelectBox1']:eq("+index+") div:first").clone().appendTo($("div[name='cloneSelectBox1']:eq("+index+")"));   
+      countBoxNum = $("div[name='cloneSelectBox1']:eq("+index+") input[name='task_boxQueAt"+index+"']").length;
       $("span[name='numSelectedBox']:eq("+index+")").text(countBoxNum);
-      
-      
    });
    
-/*    
-   $("a[name='addSelectBox']").click(function(){
-      $("div[name='cloneSelectBox1']:eq("+index+"div:first").clone().appendTo($("div[name='cloneSelectBox1']:eq("+index+")"));   
-      countBoxNum = $("input[name='task_boxQue']").length;
-      $("span[name='numSelectedBox']:eq("+index+")").text(countBoxNum);
-   }); */
+   //5. 객관식 문제 삭제하기
+   $('#clone_wrapper').on("click", "a[name='subSelectBox']", function(){
+	   /*
+        * index : 같은 name속성을 가진 a 태그 중에 몇번째가 선택되었는지 숫자를 알려준다.
+       */
+       var index = $(this).index("a[name='subSelectBox']"); 
+       if (countBoxNum > 1){
+    	   $("div[name='name_cloneSelectBox']:eq("+index+") input[name='task_boxQueAt"+index+"']").last().remove();
+    	   countBoxNum = $("div[name='cloneSelectBox1']:eq("+index+") input[name='task_boxQueAt"+index+"']").length;
+    	   $("span[name='numSelectedBox']:eq("+index+")").text(countBoxNum);
+        }else {
+           alert("최소한 1개는 설정하셔야 합니다.");
+        }
+	   
+	   
+   });
    
    $("#subSelectBox").click(function() {
       countBoxNum = $("input[name='task_boxQue']").length;
@@ -442,22 +498,15 @@
       }
    });
    
+   //문서 로딩 완료시 실행시킬 것들
    jQuery(document).ready(function($){
+	  
       $('#numSelectedBox').text(countBoxNum);
       $('#clone_button').trigger('click');
    });
    
-   //changePoint ▲▼ 변화시키기
-   var tempPoint = 1;
-   $("#changePoint").click(function(){
-      tempPoint++;
-      if(tempPoint%2==0)
-         $("#changePointValue").text('▼');
-      else
-         $("#changePointValue").text('▲');
-   });
-   
 </script>
+
 
 
 

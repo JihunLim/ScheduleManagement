@@ -5,11 +5,11 @@
 %>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 
-<!DOCTYPE html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<meta name="viewport" content="width=device-width" , initial-scale="1">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 
 <link rel="stylesheet" href="<%=cp%>/bootstrap/css/bootstrap.css" />
 <title>SVQ 상담자 사이트</title>
@@ -25,14 +25,16 @@
 					class="icon-bar"></span>
 
 			</button>
-			<a class="navbar-brand" href="main.jsp">SVQ 상담자 관리 사이트</a>
+			<a class="navbar-brand" href="Dashboard.do">SVQ 상담자 관리 사이트</a>
 		</div>
 
 		<div class="collapse navbar-collapse"
 			id="bs-example-navbar-collapse-1">
 			<ul class="nav navbar-nav">
-				<li><a href="main.jsp">Home</a></li>
-				<li><a href="bss.jsp">게시판</a></li>
+				<li><a href="Dashboard.do">Home</a></li>
+				<!-- 
+				<li><a href="bss.do">게시판</a></li>
+				 -->
 			</ul>
 
 			<ul class="nav navbar-nav navbar-right">
@@ -47,7 +49,7 @@
 		<div class="col-lg-4">
 			<div class="jumbotron" style="padding-top: 20px;">
 			
-				<form action="${loginUrl}" method="post">
+				
 					<h3 style="text-align: center;">로그인 화면</h3>
 					<c:if test="${param.fail == null}">
 						<h5 style="text-align: center; color: #1E90FF;">Sign in, please</h5>
@@ -56,6 +58,7 @@
 						<h5 style="text-align: center; color: red;">We cannot find an account with that email address.</h5>
 					</c:if>
 					<c:url value="j_spring_security_check" var="loginUrl" />
+					<form action="${loginUrl}" method="post">
 					<div class="form-group">
 						<input type="text" name="j_username" id="j_username" class="form-control" placeholder="아이디" required="required" />
 					</div>

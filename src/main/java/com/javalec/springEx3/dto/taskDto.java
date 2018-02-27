@@ -9,6 +9,7 @@ public class taskDto {
 	private String task_madeTime;
 	private String task_msg;
 	private String task_day;
+	private String task_queIds;
  
 public String getTask_name() {
 		return task_name;
@@ -64,6 +65,14 @@ public String getTask_name() {
 
 	public void setTask_day(String task_day) {
 		this.task_day = task_day;
+	}
+	
+	public String getTask_queIds() {
+		return task_queIds;
+	}
+
+	public void setTask_queIds(String task_queIds) {
+		this.task_queIds = task_queIds;
 	}
 
 public taskDto() {} //»ý¼ºÀÚ
