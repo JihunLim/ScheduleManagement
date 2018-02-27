@@ -1,12 +1,9 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
-  <%String cp= request.getContextPath(); %> 
-  <html>
+<html>
 <head>
 	<meta http-equiv="X-UA-Compatible" content="IE=9" />
 	<meta name="description" content="An app for producing linguistics syntax trees from labelled bracket notation." />
 	<link rel="canonical" href="http://mshang.ca/syntree" />
-	<title>SVQ 상담자 사이트</title>
+	<title>Syntax Tree Generator</title>
 
 	<script type="text/javascript">
 	var _gaq = _gaq || [];
@@ -22,14 +19,11 @@
 
 
 <body>
+	<a href="https://github.com/mshang/syntree"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png" alt="Fork me on GitHub"></a>
 	<div id="accordion">
-		<h3><a href="#">트리 생성 페이지</a></h3><div style="text-align:left">
-		<form method="post" action="<%=cp%>/SaveTree.do">
-			
-			<textarea id="i" name="msg" rows="4">[트리이름[노드1][노드2]]</textarea>
+		<h3><a href="#">Syntax Tree Generator</a></h3><div style="text-align:left">
+			<textarea id="i" rows="4">[S [NP This] [VP [V is] [^NP a wug]]]</textarea>
 			(C) 2011 by <a href="http://mshang.ca/">Miles Shang</a>, see <a href="LICENSE.txt">license</a>.
-		<button type="submit" class="btn btn-primary" style="float:right;">저장</button>
-				                 </form>      
 		</div>
 		
 		<h3><a href="#">Options</a></h3><div>
@@ -80,7 +74,8 @@
 		</div>
 	
 		<h3><a href="#">Help</a></h3><div class="help">
-				<h3>Examples</h3>
+			<p>Use labelled bracket notation. This app will build the tree as you type and will attempt to close any brackets that you may be missing. Save the image to your computer by right-clicking on it and selecting "Save image as". For more information, including on how to draw movement lines, visit the <a href="https://github.com/mshang/syntree/wiki">wiki</a>.</p>
+			<h3>Examples</h3>
 			<a class="example" href="?i=[NP^ Alice]">[NP^ Alice]</a><br />
 			<a class="example" href="?i=[NP [N Alice] and [N Bob]]">[NP [N Alice] and [N Bob]]</a><br />
 			<a class="example" href="?i=[S[NP[N Alice]][VP[V is][NP[N'[N a student][PP^ of physics">[S[NP[N Alice]][VP[V is][NP[N'[N a student][PP^ of physics</a><br />
@@ -105,12 +100,13 @@ a.example { text-decoration: none; color: #4183C4!important; }
 img { border: 1px solid #bbbbbb; }
 .nobr { white-space: nowrap; }
 </style>
-<link type="text/css" href="<%=cp%>/bootstrap2/css3/jquery-ui-1.8.18.custom.css" rel="stylesheet" />	
-<script type="text/javascript" src="<%=cp%>/bootstrap2/js3/jquery-1.7.1.min.js"></script>
-<script type="text/javascript" src="<%=cp%>/bootstrap2/js3/jquery-ui-1.8.18.custom.min.js"></script>
-<script type="text/javascript" src="<%=cp%>/bootstrap2/js3/base64.js"></script>
-<script type="text/javascript" src="<%=cp%>/bootstrap2/js3/canvas2image.js"></script>
-<script type="text/javascript" src="<%=cp%>/bootstrap2/js3/syntree.js"></script>
+
+<link type="text/css" href="css/cupertino/jquery-ui-1.8.18.custom.css" rel="stylesheet" />	
+<script type="text/javascript" src="js/jquery-1.7.1.min.js"></script>
+<script type="text/javascript" src="js/jquery-ui-1.8.18.custom.min.js"></script>
+<script type="text/javascript" src="js/base64.js"></script>
+<script type="text/javascript" src="js/canvas2image.js"></script>
+<script type="text/javascript" src="js/syntree.js"></script>
 <script type="text/javascript">
 
 function handler(font_size_update, vert_space_update, hor_space_update) {

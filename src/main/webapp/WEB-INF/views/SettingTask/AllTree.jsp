@@ -38,8 +38,8 @@
                                     </c:forEach>
                                 </tbody>
                             </table>
-                         
-                        </div>
+                           <button type="button" class="btn btn-default"  style="float: right; margin: 30px 10px;" onclick="location.href='TreeAjaxTest.do' ">트리 생성</button>
+                             </div>
                         <!-- /.panel-body -->
                     </div>
                     <!-- /.panel -->

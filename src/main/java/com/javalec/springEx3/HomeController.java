@@ -227,7 +227,7 @@ public class HomeController {
 		 return resultPage;
 	}
 	
-	@RequestMapping("/InsertTaskClient.do")//해당 아이디 해당 과제 중단
+	@RequestMapping("/InsertTaskClient.do")//해당 아이디에게 과제 부여
 	public String InsertTaskClient(HttpServletRequest request, Model model)
 	throws Exception {
 		//String resultPage = "forward:/ViewClient.do";
@@ -435,7 +435,7 @@ public class HomeController {
 		 return resultPage;
 	}
 	
-	@RequestMapping("/SampleChart")//모든 과제 보기 페이지
+	@RequestMapping("/SampleChart")//샘플 차트 (임시)
 	public String SampleChart()
 	{
 		
@@ -802,7 +802,7 @@ public class HomeController {
 		
 		return "SettingTask/Tree";
 	}
-	@RequestMapping("/TreeAjaxTest") 
+	@RequestMapping("/TreeAjaxTest") //테스트 페이지 나중에 수정하기
 	public String TreeAjaxTest(Model model)
 	{
 		try {
@@ -818,7 +818,101 @@ public class HomeController {
 		}
 		return "SettingTask/TreeAjaxTest";
 	}
-	@RequestMapping(value="/tttt") //해결못함 망함 ㅠ
+	@RequestMapping("/SaveTree")//textarea 전송받고 이를 저장하는 페이지
+	public String SaveTree(Model model, HttpServletRequest request)
+	{
+		String resultPage = "cmmn/saveTreeSuccess";
+		
+			try {
+				System.out.println("이꾸요잇!");
+				ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+				
+				String msg = request.getParameter("msg");
+				 msg=msg+"!"; //마지막 문장 구분자를 위해 마지막에 !를 붙여주기
+				 System.out.println(msg);
+				 char[] strArray=new char[msg.length()]; //트리 문자열을 문자열 배열로 변환하여 저장
+				 String strTree="";
+				 int length=0;
+				 length=strArray.length;
+				 for(int i=0; i<length; i++)
+				 {
+					 strArray[i]=(msg.charAt(i));
+					 //System.out.println(strArray[i]);
+				 }
+				 int level=0; //트리의 부모 노드를
+				 
+				 if(msg.charAt(0)!='[')
+				 {
+					 //첫 글자가 [가 아니면 예외처리
+					 return "cmmn/saveTreeFailure";
+				 }
+				 int i=1;
+				 while ((strArray[i] != '[') && (strArray[i] != ']')) i++;
+					strTree= msg.substring(1, i);
+				System.out.println(strTree);	
+				int tree_level=0; //트리 레벨 계산
+				int start=i;
+				int end=0;
+				for(; i<msg.length(); i++)
+				{
+					int temp=tree_level;
+					
+					if(msg.charAt(i)=='['||msg.charAt(i)==']')
+					{
+						
+						
+					if(msg.charAt(i)=='[')
+						{
+						tree_level++;
+						}
+					if(msg.charAt(i)==']') 
+					{ tree_level--;
+					}
+					end=i;
+					System.out.print(tree_level);
+					System.out.println(msg.substring(start,end));
+					start=i+1;
+					}
+					//System.out.print(tree_level,msg.substring(start, i));
+				}
+
+			//	userDto user = new userDto(user_id, user_pwd, user_name, user_sex, user_email, user_hospital);
+				//dao.insertUserDao(user);
+				
+			}catch(Exception ex) {
+				resultPage = "cmmn/saveTreeFailure";
+				System.out.println(ex.getMessage());
+			}
+			return resultPage;
+	}
+	/* 참고용 나주에 꼭 지우기
+	@RequestMapping("/checkSignup") // 회원 관리하는 페이지
+	public String checkSignup(Model model, HttpServletRequest request)
+	{
+		String resultPage = "cmmn/saveSignUpSuccess";
+		
+			try {
+				System.out.println("이꾸요잇!");
+				ScheduleDAO dao = sqlSession.getMapper(ScheduleDAO.class);
+				
+				String user_id = request.getParameter("user_id");
+				String user_pwd = pwdEncoder.encode(request.getParameter("user_pwd"));
+				String user_name = request.getParameter("user_name");
+				String user_sex = request.getParameter("user_sex");
+				String user_email = request.getParameter("user_email");
+				String user_hospital = request.getParameter("user_hospital");
+	
+				userDto user = new userDto(user_id, user_pwd, user_name, user_sex, user_email, user_hospital);
+				dao.insertUserDao(user);
+				
+			}catch(Exception ex) {
+				resultPage = "cmmn/saveSignUpFailure";
+				System.out.println(ex.getMessage());
+			}
+			return resultPage;
+	}*/
+	
+	@RequestMapping(value="/tttt") //해결못함 망함 ㅠ 버리는 페이지
 	public @ResponseBody Map<String , Object> tttt() {
 	    Map<String, Object> jsonObject = new HashMap<String, Object>();
 	    Map<String, Object> jsonSubObject = null;
@@ -830,6 +924,7 @@ public class HomeController {
 	    jsonSubObject.put("text", "긍정");
 	    jsonList.add(jsonSubObject);
 	    //2번째 데이터
+	    
 	    jsonSubObject = new HashMap<String, Object>();
 	    jsonSubObject.put("text", "부정");
 	    jsonList.add(jsonSubObject);
@@ -839,7 +934,7 @@ public class HomeController {
 	    return jsonObject; 
 	}
 
-	@RequestMapping("/AllTree") 
+	@RequestMapping("/AllTree") //생성된 모든 트리 보기 페이지
 	public String AllTree( Model model)
 	{
 		try {
@@ -853,6 +948,13 @@ public class HomeController {
 		}
 		return "SettingTask/AllTree";
 	}
+	@RequestMapping("/AddTree") //나중에 지우기
+	public String AddTree()
+	{
+		
+		return "SettingTask/AddTree";
+	}
+	
 	@RequestMapping("/form2") //나중에 지우기
 	public String form2()
 	{
